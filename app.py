@@ -48,21 +48,27 @@ def track(slug):
 # Add a new URL to the redirection system
 @app.route('/api/add-url', methods=['POST'])
 def add_url():
-    content = request.json
-    slug = content.get('slug')
-    url = content.get('url')
+    try:
+        content = request.get_json(force=True)
+        print("Received JSON:", content)  # Log to debug
 
-    if not slug or not url:
-        return jsonify({'error': 'Missing slug or url'}), 400
+        slug = content.get('slug')
+        url = content.get('url')
 
-    data = load_data()
+        if not slug or not url:
+            return jsonify({'error': 'Missing slug or url'}), 400
 
-    if slug in data:
-        return jsonify({'error': 'Slug already exists'}), 409
+        data = load_data()
 
-    data[slug] = url
-    save_data(data)
-    return jsonify({'message': 'URL added', 'slug': slug, 'url': url}), 201
+        if slug in data:
+            return jsonify({'error': 'Slug already exists'}), 409
+
+        data[slug] = url
+        save_data(data)
+        return jsonify({'message': 'URL added', 'slug': slug, 'url': url}), 201
+
+    except Exception as e:
+        return jsonify({'error': f'Invalid request: {str(e)}'}), 400
     
     
 if __name__ == "__main__":
